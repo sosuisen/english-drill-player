@@ -2,6 +2,10 @@
 
 This is a practice audio player for "Eigo no Hanon" (English Hanon).
 
+You must purchase "Eigo no Hanon" and download the accompanying audio files.
+
+![screen](./images/screen_small.png)
+
 ## Requirements
 
 - Java 25
