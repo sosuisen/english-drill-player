@@ -1,18 +1,11 @@
 # English Drill Player
 
-A desktop helper for English drills, built with JavaFX.
-
-It follows the MVVM structure of
-[sss-music-player](https://github.com/sosuisen/sss-music-player)
-and builds the scene graph in code with the
-[JavaFX Builder API](https://github.com/sosuisen/javafx-builder-api).
+This is a practice audio player for "Eigo no Hanon" (English Hanon).
 
 ## Requirements
 
 - Java 25
 - Maven
-
-JavaFX libraries are downloaded by Maven, so no extra install is needed.
 
 ## How to Run
 
@@ -20,14 +13,16 @@ JavaFX libraries are downloaded by Maven, so no extra install is needed.
 mvn javafx:run
 ```
 
-## JavaFX Preview Features
+## Development
+
+### JavaFX Preview Features
 
 The main window uses `StageStyle.EXTENDED` and `HeaderBar`, which are preview
 features of JavaFX 26. They need the JVM option `-Djavafx.enablePreview=true`.
 The option is already set in `pom.xml` for `mvn javafx:run`, `mvn test`, and
 the packaged app (jpackage).
 
-## How to Test
+### How to Test
 
 ```bash
 mvn test
@@ -48,13 +43,13 @@ It fails when a file cannot be split into drills, and prints the sound and
 silence lengths of that file. Run it after changing the detection
 parameters or the parsing rules (see ADR 003 and ADR 004).
 
-## How to Format
+### How to Format
 
 ```bash
 mvn formatter:format
 ```
 
-## How to Package
+### How to Package
 
 ```bash
 mvn package
