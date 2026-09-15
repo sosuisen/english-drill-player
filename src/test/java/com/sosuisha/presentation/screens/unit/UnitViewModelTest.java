@@ -32,7 +32,6 @@ import org.testfx.util.WaitForAsyncUtils;
 
 import com.sosuisha.domain.model.AudioFile;
 import com.sosuisha.domain.model.AudioFolder;
-import com.sosuisha.domain.model.Drill;
 import com.sosuisha.domain.model.Segment;
 import com.sosuisha.domain.model.Turn;
 import com.sosuisha.domain.model.Unit;

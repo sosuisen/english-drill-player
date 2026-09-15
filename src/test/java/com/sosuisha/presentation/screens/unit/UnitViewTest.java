@@ -43,7 +43,6 @@ import com.sosuisha.domain.service.PlaybackListener;
 import atlantafx.base.controls.Card;
 import atlantafx.base.theme.Styles;
 import atlantafx.base.theme.Tweaks;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
