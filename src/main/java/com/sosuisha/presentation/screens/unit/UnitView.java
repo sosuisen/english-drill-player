@@ -31,6 +31,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.layout.HBox;
@@ -147,6 +148,7 @@ public class UnitView implements View {
                                             TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS
                                         )
                                         .apply(this::syncSelectedUnit)
+                                        .rowFactory(_ -> unitRow())
                                         .build()
                                 ),
                                 card(
@@ -355,6 +357,18 @@ public class UnitView implements View {
             }
         });
         return cell;
+    }
+
+    // A double-click on a row plays the unit from its start. The first click
+    // has selected the row, so the view model plays the selected unit.
+    private TableRow<Unit> unitRow() {
+        var row = new TableRow<Unit>();
+        row.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2 && !row.isEmpty()) {
+                viewModel.play();
+            }
+        });
+        return row;
     }
 
     private static TableColumn<Unit, String> fileColumn() {

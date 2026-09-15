@@ -178,6 +178,24 @@ class UnitViewTest {
     }
 
     @Test
+    @DisplayName("リストのファイル名をダブルクリックすると、そのファイルが再生される")
+    void double_clicking_a_file_name_in_the_list_plays_the_file(FxRobot robot) {
+        robot.doubleClickOn("012_Unit 1.2.mp3");
+
+        assertEquals(UNIT_1_2.audioFile().path(), playedFile.get());
+    }
+
+    @Test
+    @DisplayName("リストのファイル名をダブルクリックすると、そのユニットが選択状態になり、再生状態（PLAYING）になる")
+    void double_clicking_a_file_name_in_the_list_selects_the_unit_and_starts_playing(
+        FxRobot robot) {
+        robot.doubleClickOn("012_Unit 1.2.mp3");
+
+        assertEquals(Optional.of(UNIT_1_2), viewModel.selectedUnitProperty().get());
+        assertEquals(PlaybackState.PLAYING, viewModel.playbackStateProperty().get());
+    }
+
+    @Test
     @DisplayName("画面には、選択中のファイル名の下にターン行の一覧があり、ViewModelのターン行一覧に接続されている")
     void the_screen_shows_the_turn_rows_of_the_view_model_below_the_selected_file_name(
         FxRobot robot) {
