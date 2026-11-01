@@ -62,3 +62,35 @@ mvn package
 ```
 
 This creates a native application image under `target/jpackage/` using jpackage.
+
+## Continuous Integration
+
+GitHub Actions builds the project on Linux, Windows, and macOS for every push
+to `main` and every pull request (see `.github/workflows/ci.yml`). It checks
+the formatting, runs the tests, and builds the native image. The native image
+is uploaded as a build artifact.
+
+## Release
+
+The app version comes only from the Git tag. Do not change `pom.xml` for a release.
+The `app.version` property in `pom.xml` is a placeholder for local builds.
+
+To release, create a tag and push it:
+
+```bash
+git tag v1.2.3
+git push origin v1.2.3
+```
+
+The release workflow (`.github/workflows/release.yml`) then:
+
+1. Reads the version from the tag (`v1.2.3` becomes `1.2.3`).
+2. Runs the tests again on Linux, Windows, and macOS.
+3. Builds the native image on each OS with jpackage.
+4. Creates a GitHub Release and attaches the files:
+   - `english-drill-player-1.2.3-linux-x64.tar.gz`
+   - `english-drill-player-1.2.3-windows-x64.zip`
+   - `english-drill-player-1.2.3-macos-aarch64.dmg`
+
+The tag must look like `vX.Y.Z`, with numbers only. jpackage does not accept
+other forms. The workflow stops with an error for any other tag.
