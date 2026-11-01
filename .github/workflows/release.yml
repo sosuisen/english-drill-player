@@ -8,79 +8,48 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    name: Build on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    # bash on every OS. PowerShell splits -Dname.key=value at the dot.
+  release:
+    runs-on: windows-latest
     defaults:
       run:
         shell: bash
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            archive: linux-x64.tar.gz
-          - os: windows-latest
-            archive: windows-x64.zip
-          - os: macos-latest
-            archive: macos-aarch64.dmg
     steps:
-      - uses: actions/checkout@v7
-
-      # The tag is the only source of the version.
-      # "v1.2.3" becomes "1.2.3". jpackage needs this X.Y.Z form.
+      # The version names the zip and the release.
       - name: Read the version from the tag
         run: |
           version="${GITHUB_REF_NAME#v}"
-          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "::error::Tag '$GITHUB_REF_NAME' must look like vX.Y.Z"
+          if [[ ! "$version" =~ ^[0-9]+(\.[0-9]+){0,2}$ ]]; then
+            echo "::error::The tag must look like v1.2.0: $GITHUB_REF_NAME"
             exit 1
           fi
           echo "APP_VERSION=$version" >> "$GITHUB_ENV"
 
-      - uses: actions/setup-java@v6
-        with:
-          distribution: temurin
-          java-version: 25
-          cache: maven
-
-      # A tag can point at any commit, so the tests run again here.
-      # One test JVM at a time: see ci.yml.
-      - name: Test and build native image
-        run: mvn -B package -Dapp.version=${{ env.APP_VERSION }} -Dsurefire.forkCount=1
-
-      - name: Archive (Linux)
-        if: runner.os == 'Linux'
-        run: tar -czf "english-drill-player-${APP_VERSION}-${{ matrix.archive }}" -C target/jpackage english-drill-player
-
-      - name: Archive (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: Compress-Archive -Path target/jpackage/english-drill-player -DestinationPath "english-drill-player-$env:APP_VERSION-${{ matrix.archive }}"
-
-      - name: Archive (macOS)
-        if: runner.os == 'macOS'
-        run: mv target/jpackage/*.dmg "english-drill-player-${APP_VERSION}-${{ matrix.archive }}"
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: ${{ matrix.archive }}
-          path: english-drill-player-*
-          if-no-files-found: error
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/download-artifact@v8
+      # Community Edition, because Oracle GraalVM needs the GFTC license checked.
+      - uses: graalvm/setup-graalvm@v1
         with:
-          path: dist
-          merge-multiple: true
+          distribution: graalvm-community
+          version: "25.4"
+          java-version: 25
+          cache: maven
+          github-token: ${{ github.token }}
+
+      # A release runs the tests again, because a tag can point to any commit.
+      - name: Test and build the native exe
+        run: mvn -B -Pnative clean package
+
+      # A missing registration in the metadata fails only at run time, not at build time.
+      - name: Start the native exe and close its window
+        shell: pwsh
+        run: ./.github/scripts/smoke-test-exe.ps1 -Exe target/english-drill-player.exe
+
+      # The exe does not run without the DLLs for JavaFX media and AWT.
+      - name: Zip the native exe
+        shell: pwsh
+        run: Compress-Archive -Path target/english-drill-player.exe, target/*.dll -DestinationPath "english-drill-player-$env:APP_VERSION.zip"
 
       - name: Create the GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --generate-notes
+        run: gh release create "$GITHUB_REF_NAME" "english-drill-player-$APP_VERSION.zip" --title "$GITHUB_REF_NAME" --generate-notes
