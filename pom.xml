@@ -26,6 +26,8 @@
     <!-- Placeholder for local builds. The release workflow passes the real
          version from the Git tag with -Dapp.version=X.Y.Z. -->
     <app.version>1.0.0</app.version>
+    <!-- Test JVMs per CPU core. CI overrides this with -Dsurefire.forkCount=1. -->
+    <surefire.forkCount>1C</surefire.forkCount>
   </properties>
 
   <dependencies>
@@ -155,7 +157,7 @@
         <configuration>
           <!-- Test classes run in parallel across forked JVMs. TestFX needs
                one JavaFX toolkit per JVM, so in-JVM parallelism is not safe. -->
-          <forkCount>1C</forkCount>
+          <forkCount>${surefire.forkCount}</forkCount>
           <reuseForks>true</reuseForks>
           <systemPropertyVariables>
             <!-- Runs the TestFX tests without opening windows. -->
