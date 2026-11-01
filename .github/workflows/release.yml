@@ -11,6 +11,10 @@ jobs:
   build:
     name: Build on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    # bash on every OS. PowerShell splits -Dname.key=value at the dot.
+    defaults:
+      run:
+        shell: bash
     strategy:
       fail-fast: false
       matrix:
@@ -27,7 +31,6 @@ jobs:
       # The tag is the only source of the version.
       # "v1.2.3" becomes "1.2.3". jpackage needs this X.Y.Z form.
       - name: Read the version from the tag
-        shell: bash
         run: |
           version="${GITHUB_REF_NAME#v}"
           if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
