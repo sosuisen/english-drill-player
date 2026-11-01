@@ -293,10 +293,15 @@ class UnitViewTest {
         robot.interact(() -> listener.positionChanged(Duration.ofSeconds(9_999))); // past every
                                                                                    // turn
 
-        // The list creates the row on a later layout pulse. A slow machine
-        // (a CI runner) needs more than one waitForFxEvents() for it.
-        WaitForAsyncUtils
-            .waitFor(5, TimeUnit.SECONDS, () -> robot.lookup("5-4").tryQuery().isPresent());
+        // The list scrolls so that the playing row (index 24) is the 7th row in
+        // view: row 18 ("4-3") becomes the first. The row count that fits in
+        // the window differs by OS, so the test looks at the first row, not at
+        // the last. The rows appear on a later layout pulse, hence the wait.
+        WaitForAsyncUtils.waitFor(
+            5, TimeUnit.SECONDS,
+            () -> robot.lookup("4-3").tryQuery().isPresent()
+                && robot.lookup("1-1").tryQuery().isEmpty()
+        );
     }
 
     @Test
