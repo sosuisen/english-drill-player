@@ -23,6 +23,9 @@
     <sqlite.jdbc.version>3.53.2.1</sqlite.jdbc.version>
     <javasound.mp3.version>1.9.8</javasound.mp3.version>
     <ikonli.version>12.4.0</ikonli.version>
+    <!-- Placeholder for local builds. The release workflow passes the real
+         version from the Git tag with -Dapp.version=X.Y.Z. -->
+    <app.version>1.0.0</app.version>
   </properties>
 
   <dependencies>
@@ -278,7 +281,7 @@
         </executions>
         <configuration>
           <name>english-drill-player</name>
-          <appVersion>1.0.0</appVersion>
+          <appVersion>${app.version}</appVersion>
           <vendor>${project.groupId}</vendor>
           <input>${project.build.directory}/app/</input>
           <mainJar>${project.artifactId}-${project.version}.jar</mainJar>
@@ -359,7 +362,10 @@
       <id>unix</id>
       <activation>
         <os>
+          <!-- macOS is also in the unix family. Linux-only keeps the mac
+               profile from being overridden on macOS. -->
           <family>unix</family>
+          <name>Linux</name>
         </os>
       </activation>
       <properties>
