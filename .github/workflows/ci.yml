@@ -14,17 +14,9 @@ on:
       - "LICENSE"
 
 jobs:
-  build:
-    name: Build on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    # bash on every OS. PowerShell splits -Dname.key=value at the dot.
-    defaults:
-      run:
-        shell: bash
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+  test:
+    # The native exe is built for Windows, so the tests run where the exe runs.
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
 
@@ -37,15 +29,50 @@ jobs:
       - name: Check formatting
         run: mvn -B formatter:validate
 
-      # "package" runs the tests and then jpackage.
-      # The native image goes to target/jpackage/.
-      # One test JVM at a time: parallel JVMs extract the JavaFX native
-      # libraries to the same cache and one of them reads a half-written file.
-      - name: Test and build native image
-        run: mvn -B package -Dsurefire.forkCount=1
+      - name: Compile with NullAway and run tests
+        run: mvn -B clean test
 
-      - uses: actions/upload-artifact@v7
+      # The reports are needed only to read why a test failed.
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
         with:
-          name: english-drill-player-${{ runner.os }}
-          path: target/jpackage/
-          if-no-files-found: error
+          name: surefire-reports
+          path: target/surefire-reports/
+          retention-days: 7
+
+  package:
+    # A pull request does not need an exe to try.
+    if: github.event_name == 'push'
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Community Edition, because Oracle GraalVM needs the GFTC license checked.
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          distribution: graalvm-community
+          version: "25.4"
+          java-version: 25
+          cache: maven
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # The test job has already run the tests on the same commit.
+      - name: Build the native exe
+        run: mvn -B -Pnative clean package -DskipTests
+
+      # A missing registration in the metadata fails only at run time, not at build time.
+      - name: Start the native exe and close its window
+        shell: pwsh
+        run: ./.github/scripts/smoke-test-exe.ps1 -Exe target/english-drill-player.exe
+
+      # The exe does not run without the DLLs for JavaFX media and AWT.
+      - name: Upload the native exe
+        uses: actions/upload-artifact@v7
+        with:
+          name: english-drill-player-native
+          path: |
+            target/english-drill-player.exe
+            target/*.dll
+          retention-days: 7
