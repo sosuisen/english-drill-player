@@ -1,0 +1,2 @@
+# The formatter requires LF. Git on Windows would check out CRLF without this.
+* text=auto eol=lf
