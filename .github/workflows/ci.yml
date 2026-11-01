@@ -35,8 +35,10 @@ jobs:
 
       # "package" runs the tests and then jpackage.
       # The native image goes to target/jpackage/.
+      # One test JVM at a time: parallel JVMs extract the JavaFX native
+      # libraries to the same cache and one of them reads a half-written file.
       - name: Test and build native image
-        run: mvn -B package
+        run: mvn -B package -Dsurefire.forkCount=1
 
       - uses: actions/upload-artifact@v7
         with:

@@ -43,8 +43,9 @@ jobs:
           cache: maven
 
       # A tag can point at any commit, so the tests run again here.
+      # One test JVM at a time: see ci.yml.
       - name: Test and build native image
-        run: mvn -B package -Dapp.version=${{ env.APP_VERSION }}
+        run: mvn -B package -Dapp.version=${{ env.APP_VERSION }} -Dsurefire.forkCount=1
 
       - name: Archive (Linux)
         if: runner.os == 'Linux'
