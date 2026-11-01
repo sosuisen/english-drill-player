@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -281,7 +282,8 @@ class UnitViewTest {
 
     @Test
     @DisplayName("再生中の行が一覧の可視範囲の外にあるとき、一覧が自動的にスクロールしてその行が見える")
-    void the_turn_list_scrolls_to_the_playing_turn_when_it_is_out_of_view(FxRobot robot) {
+    void the_turn_list_scrolls_to_the_playing_turn_when_it_is_out_of_view(FxRobot robot)
+        throws Exception {
         robot.clickOn("011_Unit 1.1.mp3");
         WaitForAsyncUtils.waitForFxEvents();
         robot.clickOn("#play");
@@ -290,9 +292,11 @@ class UnitViewTest {
 
         robot.interact(() -> listener.positionChanged(Duration.ofSeconds(9_999))); // past every
                                                                                    // turn
-        WaitForAsyncUtils.waitForFxEvents();
 
-        assertTrue(robot.lookup("5-4").tryQuery().isPresent());
+        // The list creates the row on a later layout pulse. A slow machine
+        // (a CI runner) needs more than one waitForFxEvents() for it.
+        WaitForAsyncUtils
+            .waitFor(5, TimeUnit.SECONDS, () -> robot.lookup("5-4").tryQuery().isPresent());
     }
 
     @Test
